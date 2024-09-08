@@ -2,7 +2,7 @@ import os
 import tkinter as tk
 import time
 from tkinter import ttk, filedialog
-from PIL import Image, ImageTk
+from PIL import Image, ImageTk, ImageFilter
 from threading import Thread
 
 from src.config import *
@@ -13,7 +13,7 @@ class EightPuzzle(tk.Tk):
     def __init__(self, *args, **kwargs):
         tk.Tk.__init__(self, *args, **kwargs)
         self.title("8-Puzzle Game")
-        self.geometry("900x900")
+        self.geometry("1200x900")
         self.resizable(False, False)
         self.iconbitmap("src/assets/images/app.ico")
         self.protocol("WM_DELETE_WINDOW", lambda: os._exit(0))
@@ -93,13 +93,48 @@ class PuzzlePage(tk.Frame):
         self.image_label.image = img  # Important to keep a reference
         self.image_label.grid(row=2, column=3, padx=50, pady=10)
 
+        # New Information Column
+        self.frame_info = tk.Frame(self.frame_puzzle, **BASIC_FRAME_PROPERTIES)
+        self.frame_info.grid(row=0, column=4, rowspan=3, padx=20, pady=20)
+
+        # Example labels for information
+        self.label_info_title = tk.Label(
+            self.frame_info, text="Group 2: IT project", **TEXT_LABEL_PROPERTIES
+        )
+        self.label_info_title.pack(anchor="w", pady=5)
+
+        self.label_moves_info = tk.Label(
+            self.frame_info,
+            text=f"Instructor: Hoàng Văn Dũng",
+            **SUBHEADING_LABEL_PROPERTIES,
+        )
+        self.label_moves_info.pack(anchor="w", pady=5)
+
+        self.label_moves_info = tk.Label(
+            self.frame_info, text=f"Members:", **SUBHEADING_LABEL_PROPERTIES
+        )
+        self.label_moves_info.pack(anchor="w", pady=5)
+
+        self.label_status_info = tk.Label(
+            self.frame_info,
+            text=f"- Lê Tất Thắng 21110800",
+            **SUBHEADING_LABEL_PROPERTIES,
+        )
+        self.label_status_info.pack(anchor="w", pady=5)
+        self.label_status_info = tk.Label(
+            self.frame_info,
+            text=f"- Trần Hoài Thi 21110801",
+            **SUBHEADING_LABEL_PROPERTIES,
+        )
+        self.label_status_info.pack(anchor="w", pady=5)
+
         # Button section
         self.frame_buttons = tk.Frame(self, **BASIC_FRAME_PROPERTIES)
         self.frame_buttons.pack(pady=10)
 
         self.button_solve = tk.Button(
             self.frame_buttons,
-            text="Solve",
+            text="Solve ✍️",
             command=lambda: self.solve_board(),
             **PRIMARY_BUTTON_PROPERTIES,
         )
@@ -107,15 +142,15 @@ class PuzzlePage(tk.Frame):
 
         self.button_reset = tk.Button(
             self.frame_buttons,
-            text="Reset",
+            text="Reset 💫",
             command=lambda: self.reset_board(),
-            **SECONDARY_BUTTON_PROPERTIES,
+            **PRIMARY_BUTTON_PROPERTIES,
         )
         self.button_reset.grid(row=0, column=1, padx=10, pady=10)
 
         self.button_shuffle = tk.Button(
             self.frame_buttons,
-            text="Shuffle",
+            text="Shuffle 📚",
             command=lambda: self.shuffle_board(),
             **PRIMARY_BUTTON_PROPERTIES,
         )
@@ -123,16 +158,16 @@ class PuzzlePage(tk.Frame):
 
         self.button_change = tk.Button(
             self.frame_buttons,
-            text="Change",
+            text="Change 🪄",
             command=lambda: self.change_algorithm(),
-            **TERTIARY_BUTTON_PROPERTIES,
+            **PRIMARY_BUTTON_PROPERTIES,
         )
         self.button_change.grid(row=0, column=3, padx=10, pady=10)
 
         # thêm nút import images
         self.button_image = tk.Button(
             self.frame_buttons,
-            text="Image",
+            text="Image 📸",
             command=lambda: self.load_image(),
             **PRIMARY_BUTTON_PROPERTIES,
         )
@@ -164,7 +199,7 @@ class PuzzlePage(tk.Frame):
     def initialize_board(self):
         for index in range(9):
             self.board.append(tk.Button(self.frame_board, **TILE_BUTTON_PROPERTIES))
-            self.board[index].grid(row=index // 3, column=index % 3, padx=2, pady=2)
+            self.board[index].grid(row=index // 3, column=index % 3, padx=1, pady=1)
 
     def populate_board(self, state, delay_time=0):
         for tile_index, tile_value in enumerate(state):
@@ -182,7 +217,7 @@ class PuzzlePage(tk.Frame):
         image = Image.open(
             "src/assets/images/image_main.png"
         )  # Replace with the path to your image file
-        image = image.resize((100, 100))  # Resize the image to 50x50
+        image = image.resize((300, 300))  # Resize the image to 50x50
         img = ImageTk.PhotoImage(image)
 
         self.image_label = tk.Label(self.frame_puzzle, image=img)
@@ -267,7 +302,7 @@ class PuzzlePage(tk.Frame):
         )
         self.algorithm = self.available_algorithms[self.algorithm_index]
         self.label_subheading.configure(
-            text=f"solved using {self.algorithm.name} algorithm"
+            text=f"Solved using {self.algorithm.name} algorithm"
         )
 
     # Load images
@@ -285,9 +320,17 @@ class PuzzlePage(tk.Frame):
         for i in range(3):
             for j in range(3):
                 if i == 0 and j == 0:
-                    tk_piece = ImageTk.PhotoImage(
-                        Image.open("src/assets/images/tile_0.png")
-                    )
+                    left = j * piece_size
+                    upper = i * piece_size
+                    right = left + piece_size
+                    lower = upper + piece_size
+                    piece = image.crop((left, upper, right, lower))
+
+                    piece_path = f"src/assets/images/tile_{3*i+j}.png"
+                    piece.save(piece_path)
+                    piece = Image.open("src/assets/images/tile_0.png")
+                    piece = piece.filter(ImageFilter.GaussianBlur(1))  # Làm mờ
+                    tk_piece = ImageTk.PhotoImage(piece)
                 else:
                     left = j * piece_size
                     upper = i * piece_size
