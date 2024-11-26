@@ -37,6 +37,8 @@ class PuzzlePage(tk.Frame):
         self.controller = controller
 
         self.moves = 0
+        self.time = 0
+        self.expanded = 0
         self.board = []
 
         self.available_algorithms = [
@@ -176,15 +178,27 @@ class PuzzlePage(tk.Frame):
         self.label_moves = tk.Label(
             self.frame_puzzle, text=f"Moves: {self.moves}", **TEXT_LABEL_PROPERTIES
         )
-        self.label_moves.grid(row=0, column=0, sticky="w", padx=20, pady=10)
+        self.label_moves.grid(row=0, column=0, sticky="w")
+
+        # time label
+        self.label_time = tk.Label(
+            self.frame_puzzle, text=f"Time: {self.time}", **TEXT_LABEL_PROPERTIES
+        )
+        self.label_time.grid(row=0, column=3, sticky="w", padx=50)
+        
+        # node expanded label
+        self.label_node = tk.Label(
+            self.frame_puzzle, text=f"Node expanded: {self.expanded}", **TEXT_LABEL_PROPERTIES
+        )
+        self.label_node.grid(row=1, column=0, sticky="w")
 
         self.label_status = tk.Label(
             self.frame_puzzle, text=f"Playing...", **TEXT_LABEL_PROPERTIES
         )
-        self.label_status.grid(row=0, column=1, sticky="e", padx=10, pady=10)
+        self.label_status.grid(row=1, column=3, sticky="w", padx=50)
 
-        self.separator = ttk.Separator(self.frame_puzzle, orient="horizontal")
-        self.separator.grid(row=1, columnspan=2, sticky="ew", pady=10)
+        # self.separator = ttk.Separator(self.frame_puzzle, orient="horizontal")
+        # self.separator.grid(row=1, columnspan=2, sticky="ew", pady=10)
 
         self.frame_board = tk.Frame(self.frame_puzzle, **BASIC_FRAME_PROPERTIES)
         self.frame_board.grid(row=2, columnspan=2)
@@ -236,6 +250,8 @@ class PuzzlePage(tk.Frame):
         self.is_stopped = False
         self.is_solving = True
         self.is_done = False
+        self.time = 0
+        self.expanded = 0
         self.update_status("Solving...")
 
         print("\nFinding solution...")
@@ -252,6 +268,12 @@ class PuzzlePage(tk.Frame):
                 f"Has a max search depth of {max_search_depth} and nodes expanded of {nodes_expanded}"
             )
             print("Actions:", *path_to_goal)
+            # Cập nhật giá trị thời gian vào label_time
+            self.time = round(time_elasped, 4)  # Làm tròn thời gian đến 4 chữ số
+            self.label_time.configure(text=f"Time: {self.time}s")  # Cập nhật label_time
+            # Cập nhật giá trị node expanded vào label_node
+            self.expanded = nodes_expanded
+            self.label_node.configure(text=f"Node expanded: {self.expanded}")
         else:
             print("Stopped")
 
@@ -283,6 +305,8 @@ class PuzzlePage(tk.Frame):
     def reset_board(self):
         self.stop_solution()
         self.update_moves(0)
+        self.update_time(0)
+        self.update_node(0)
         self.update_status("Playing...")
         self.populate_board(state=self.saved_board_state)
 
@@ -424,6 +448,14 @@ class PuzzlePage(tk.Frame):
     def update_moves(self, moves):
         self.moves = moves
         self.label_moves.configure(text=f"Moves: {self.moves}")
+    
+    def update_time(self, time):
+        self.time = time
+        self.label_time.configure(text=f"Time: {self.time}")
 
+    def update_node(self, expanded):
+        self.expanded = expanded
+        self.label_node.configure(text=f"Node expanded: {self.expanded}")
+        
     def update_status(self, status):
         self.label_status.configure(text=status)
